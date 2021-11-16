@@ -1,0 +1,33 @@
+.ModalBlocker {
+    display: none;
+    height: 100vh;
+    width: 100vw;
+    position: fixed;
+    z-index: 3;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0);
+    transition: 0.8s;
+
+}
+.ReportModal {
+    width: 80vw;
+    
+    position: fixed;
+    bottom: -50vh;
+    left: 10vw;
+
+    background-color: #fff;
+    border-radius: 25px;
+    transition: 0.8s;
+}
+/* .ReportModal::before {
+    content: "";
+    z-index: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+} */
