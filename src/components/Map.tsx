@@ -4,6 +4,8 @@ import ReactMapGL, {
   GeolocateControl,
   Marker,
   ViewportProps,
+  Popup,
+  FlyToInterpolator
 } from "react-map-gl";
 
 // import ReportModal from "./ReportModal";
@@ -25,6 +27,7 @@ function Map() {
   const [cities, setCities] = useState<Array<ICity>>([]);
   const [city, setCity] = useState<string>("");
   const [dumpsters, setDumpsters] = useState<Array<IDumpster>>();
+  const [mapStyle, setMapStyle] = useState<string>("mapbox://styles/mapbox/streets-v11");
 
   //Fetch Cities
   useEffect(() => {
@@ -49,8 +52,7 @@ function Map() {
     //Get city coordinate and move map center
     console.log("let's city coords");
     await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${
-        city + ", France"
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${city + ", France"
       }.json?limit=1&access_token=pk.eyJ1IjoibGVnaWxhbWFscyIsImEiOiJja21kNnp5dmEyaWl4MnVwMWNleDN3enhkIn0.TOMWAu7ep733glbYBZFSxA`
     )
       .then((response) => response.json())
@@ -69,20 +71,25 @@ function Map() {
   function selectChangeHandler(event: ChangeEvent<HTMLSelectElement>) {
     setCity(event.target.value);
   }
-  // Only rerender markers if dumpsters has changed
-  const markers = React.useMemo(() => {
-    if (dumpsters) {
-      dumpsters.map((dumpster) => (
-        <Marker
-          key={dumpster.id}
-          longitude={dumpster.lng}
-          latitude={dumpster.lat}
-        >
-          <div>You are here</div>
-        </Marker>
-      ));
-    }
-  }, [dumpsters]);
+  function selectChangeHandlerStyle(event: ChangeEvent<HTMLSelectElement>) {
+    setMapStyle(event.target.value);
+  }
+  function geolocateOn(longitude: number, latitude: number) {
+    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=pk.eyJ1IjoibGVnaWxhbWFscyIsImEiOiJja21kNnp5dmEyaWl4MnVwMWNleDN3enhkIn0.TOMWAu7ep733glbYBZFSxA`).then((res) => res.json()).then((resJson) => {
+      console.log(resJson);
+      const cityFromCoords = resJson.features[0].context[1].text
+      setCity(cityFromCoords)
+      let selectCity = (document.getElementById('citySelector') as HTMLSelectElement)
+      selectCity.value = cityFromCoords
+
+    })
+  }
+  function OnClickMarker(e: any) {
+    console.log(e);
+
+
+  }
+  const [showPopup, togglePopup] = React.useState(false);
   return (
     <div className="Map">
       <select
@@ -98,23 +105,62 @@ function Map() {
           </option>
         ))}
       </select>
+      <select
+        name="mapstyle"
+        id="mapstyle"
+        className="mapstyle"
+        onChange={selectChangeHandlerStyle}
+      >
+        <option value="">Select a map style</option>
+        <option value="mapbox://styles/mapbox/streets-v11">
+          streets
+        </option>
+        <option value="mapbox://styles/mapbox/satellite-v9">
+          satallite
+        </option>
+      </select>
       <ReactMapGL
         {...viewport}
         mapboxApiAccessToken={accessToken}
         width="100%"
         height="100%"
         onViewportChange={(viewport: ViewportProps) => setViewport(viewport)}
-        mapStyle="mapbox://styles/mapbox/streets-v11"
+        mapStyle={mapStyle}
+        transitionDuration={1000}
+      // transitionInterpolator={new FlyToInterpolator()}
       >
         <GeolocateControl
           style={geolocateControlStyle}
           positionOptions={{ enableHighAccuracy: true }}
           trackUserLocation={true}
+          onGeolocate={(e: any) => {
+            console.log(e);
+            console.log('geolocate enabled');
+            geolocateOn(e.coords.longitude, e.coords.latitude)
+          }}
         />
-        {markers}
+        {showPopup && <Popup
+          latitude={37.78}
+          longitude={-122.41}
+          closeButton={true}
+          closeOnClick={false}
+          onClose={() => togglePopup(false)}
+          anchor="top" >
+          <div>You are here</div>
+        </Popup>}
+        {dumpsters && dumpsters!.map((dumpster) => (
+          <Marker
+          key={dumpster.id}
+            longitude={dumpster.lng}
+            latitude={dumpster.lat}
+            onClick={(e: any) => OnClickMarker(e)}
+          >
+            < 
+            <div className="marker"></div>
+          </Marker>
+        ))}
       </ReactMapGL>
     </div>
   );
 }
-
 export default Map;
