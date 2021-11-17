@@ -155,7 +155,6 @@ function Map() {
             latitude={dumpster.lat}
             onClick={(e: any) => OnClickMarker(e)}
           >
-            < 
             <div className="marker"></div>
           </Marker>
         ))}

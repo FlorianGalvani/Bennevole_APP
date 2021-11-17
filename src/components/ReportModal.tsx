@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 
-import "./ReportModal.css";
 
 function ReportModal() {
   const reportModal = document.getElementById("ReportModal")!;
